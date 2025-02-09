@@ -24,6 +24,8 @@ cl =''
 output=''
 
 
+
+
 frame = tk.Frame(root, bg='lightgreen')
 frame.place(relwidth=1, relheight=1)
 
@@ -264,6 +266,62 @@ choose_langauge['values'] = (
 choose_langauge.place(x=600, y=140)
 choose_langauge.current(0)
 
+#------------------************* new**********______________
+# Text area for input and output
+input_text = Text(root, height=10, width=50, font=('Corbel', 16))
+input_text.place(x=30, y=200)
+
+output_text = Text(root, height=10, width=50, font=('Corbel', 16))
+output_text.place(x=470, y=200)
+
+translator = Translator()
+
+def translate_text():
+    input_lang = auto_detect.get()
+    output_lang = l.get()
+    text_to_translate = input_text.get("1.0", tk.END).strip()
+    
+    if not text_to_translate:
+        messagebox.showwarning("Input Error", "Please enter text to translate.")
+        return
+    
+    try:
+        translated = translator.translate(text_to_translate, src=input_lang, dest=output_lang)
+        output_text.delete("1.0", tk.END)
+        output_text.insert(tk.END, translated.text)
+    except Exception as e:
+        messagebox.showerror("Translation Error", str(e))
+
+def clear_text():
+    input_text.delete("1.0", tk.END)
+    output_text.delete("1.0", tk.END)
+
+def copy_text():
+    translated_text = output_text.get("1.0", tk.END).strip()
+    if translated_text:
+        pc.copy(translated_text)
+        messagebox.showinfo("Copied", "Translated text copied to clipboard.")
+
+def read_aloud():
+    text_to_read = output_text.get("1.0", tk.END).strip()
+    if text_to_read:
+        tts = gTTS(text=text_to_read, lang=l.get())
+        tts.save("output.mp3")
+        os.system("start output.mp3")  # This will work on Windows
+
+def voice_input():
+    recognizer = spr.Recognizer()
+    with spr.Microphone() as source:
+        messagebox.showinfo("Voice Input", "Please speak now...")
+        audio = recognizer.listen(source)
+        try:
+            spoken_text = recognizer.recognize_google(audio)
+            input_text.delete("1.0", tk.END)
+            input_text.insert(tk.END, spoken_text)
+        except spr.UnknownValueError:
+            messagebox.showerror("Voice Input Error", "Could not understand audio.")
+        except spr.RequestError as e:
+            messagebox.showerror("Voice Input Error", f"Could not request results; {e}")
 
 translate_button = Button(root, text=" Translate Text ", compound="right", relief=RIDGE, borderwidth=0, font=('Corbel', 20, 'bold'), cursor="hand2",
                 bg="#ffffff")
